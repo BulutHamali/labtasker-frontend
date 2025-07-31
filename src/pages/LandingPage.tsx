@@ -40,7 +40,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
+    <div className="min-h-screen font-sans bg-gradient-subtle text-foreground antialiased">
       {/* Hero Section */}
       <div className="flex flex-col items-center justify-center min-h-screen px-4 text-center">
         <div className="max-w-4xl mx-auto">

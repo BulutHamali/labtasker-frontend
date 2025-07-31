@@ -1,51 +1,80 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "@hello-pangea/dnd";
 import useApi from "../hooks/useApi";
-
-const cardClasses =
-  "bg-white rounded-lg shadow-md p-4 flex flex-col gap-2 hover:shadow-lg transition";
-const buttonClasses =
-  "px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition";
 
 interface Task {
   _id: string;
   name: string;
-  dueDate: string;
+  dueDate?: string;
+  status: "To Do" | "In Progress" | "Done";
   completed: boolean;
+  order?: number;
+}
+
+interface Project {
+  _id: string;
+  name: string;
+  description?: string;
 }
 
 export default function ProjectDetailsPage() {
-  // FIX: useParams must match ":projectId" from App.tsx route
-  const { projectId } = useParams<{ projectId: string }>();
-
+  const { projectId } = useParams<{ projectId: string }>(); // FIXED PARAM
+  const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newTask, setNewTask] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const api = useApi();
 
-  const fetchTasks = async () => {
-    if (!projectId) {
-      setError("Invalid project ID");
-      setLoading(false);
-      return;
-    }
+  const [editingProject, setEditingProject] = useState(false);
+  const [editedProjectName, setEditedProjectName] = useState("");
+  const [editedProjectDesc, setEditedProjectDesc] = useState("");
+
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editedName, setEditedName] = useState("");
+  const [editedDueDate, setEditedDueDate] = useState("");
+
+  const api = useApi();
+  const statuses: Task["status"][] = ["To Do", "In Progress", "Done"];
+
+const fetchProjectAndTasks = async () => {
+  try {
+    console.log('Fetching project from:', `/projects/${projectId}`);
+    console.log('Fetching tasks from:', `/tasks/${projectId}/tasks`);
+    const projRes = await api.get(`/projects/${projectId}`); // Relative path
+    const taskRes = await api.get(`/tasks/${projectId}/tasks`); // Relative path
+    setProject(projRes.data);
+    setTasks(taskRes.data);
+    setError(null);
+  } catch (err: any) {
+    console.error('Fetch Error:', err.response?.data || err.message);
+    setError(err.response?.data?.error || "Failed to load project or tasks");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const saveProject = async () => {
     try {
-      const res = await api.get(`/projects/${projectId}/tasks`);
-      setTasks(res.data);
-      setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to fetch tasks");
-    } finally {
-      setLoading(false);
+      const res = await api.put(`/projects/${projectId}`, {
+        name: editedProjectName,
+        description: editedProjectDesc,
+      });
+      setProject(res.data);
+      setEditingProject(false);
+    } catch {
+      setError("Failed to update project");
     }
   };
 
   const addTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!projectId) return;
-
     try {
       const res = await api.post(`/projects/${projectId}/tasks`, {
         name: newTask,
@@ -59,23 +88,170 @@ export default function ProjectDetailsPage() {
     }
   };
 
+const updateTask = async (taskId: string, updates: Partial<Task>) => {
+  try {
+    console.log('Updating task:', `/tasks/${projectId}/tasks/${taskId}`, updates);
+    const response = await api.put(`/tasks/${projectId}/tasks/${taskId}`, updates);
+    fetchProjectAndTasks(); // Refresh tasks
+    return response.data;
+  } catch (err: any) {
+    console.error('Update Task Error:', err.response?.data || err.message);
+    throw err;
+  }
+};
+
+  const deleteTask = async (taskId: string) => {
+    try {
+      await api.delete(`/projects/${projectId}/tasks/${taskId}`); // Include projectId
+      setTasks(tasks.filter((t) => t._id !== taskId));
+    } catch (err: any) {
+      console.error("Delete Task Error:", err.response?.data || err.message); // Log for debugging
+      setError(err.response?.data?.error || "Failed to delete task");
+    }
+  };
+
+const handleDragEnd = async (result: DropResult) => {
+  if (!result.destination) return;
+
+  const { draggableId, destination } = result;
+  const newStatus = destination.droppableId as Task["status"];
+
+  const updatedTasks = tasks.map((task) =>
+    task._id === draggableId ? { ...task, status: newStatus } : task
+  );
+
+  const tasksByStatus = statuses.reduce((acc, status) => {
+    acc[status] = updatedTasks
+      .filter((t) => t.status === status)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    return acc;
+  }, {} as Record<Task["status"], Task[]>);
+
+  const reorderedUpdates = Object.entries(tasksByStatus).flatMap(
+    ([status, arr]) =>
+      arr.map((task, index) => ({
+        taskId: task._id,
+        status: status as Task["status"],
+        order: index,
+      }))
+  );
+
+  console.log('Reordered updates:', reorderedUpdates);
+  setTasks(updatedTasks);
+
+  try {
+    console.log('Sending PUT to:', `/tasks/${projectId}/tasks/reorder`, { updates: reorderedUpdates });
+    const response = await api.put(`/tasks/${projectId}/tasks/reorder`, {
+      updates: reorderedUpdates,
+    });
+    console.log('Reorder response:', response.data);
+  } catch (err: any) {
+    console.error('Reorder Error:', err.response?.data || err.message);
+    setError("Failed to save task positions");
+    fetchProjectAndTasks();
+  }
+};
+
+
+
+  const startEditingTask = (task: Task) => {
+    setEditingTaskId(task._id);
+    setEditedName(task.name);
+    setEditedDueDate(
+      task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
+    );
+  };
+
+  const saveTaskEdit = async (taskId: string) => {
+    await updateTask(taskId, {
+      name: editedName,
+      dueDate: editedDueDate || undefined,
+    });
+    setEditingTaskId(null);
+  };
+
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const progress =
+    tasks.length > 0
+      ? Math.round((completedTasks / tasks.length) * 100)
+      : 0;
+
   useEffect(() => {
-    fetchTasks();
+    fetchProjectAndTasks();
   }, [projectId]);
+
+  if (loading) return <p className="p-6">Loading project...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Project Details</h1>
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Editable Project Header */}
+        {editingProject ? (
+          <div className="space-y-3 p-4 bg-white rounded shadow">
+            <input
+              type="text"
+              value={editedProjectName}
+              onChange={(e) => setEditedProjectName(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+            <textarea
+              value={editedProjectDesc}
+              onChange={(e) => setEditedProjectDesc(e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={saveProject}
+                className="px-4 py-2 bg-green-500 text-white rounded"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditingProject(false)}
+                className="px-4 py-2 bg-gray-400 text-white rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-white rounded shadow space-y-2">
+            <h1 className="text-3xl font-bold">{project?.name}</h1>
+            <p className="text-gray-600">{project?.description}</p>
+            <button
+              onClick={() => {
+                setEditingProject(true);
+                setEditedProjectName(project?.name || "");
+                setEditedProjectDesc(project?.description || "");
+              }}
+              className="px-3 py-1 bg-blue-500 text-white rounded"
+            >
+              Edit Project
+            </button>
+          </div>
+        )}
 
-        <Link to="/dashboard" className="text-blue-500 hover:underline mb-6 block">
+        {/* Progress Bar */}
+        <div className="p-4 bg-white rounded shadow">
+          <h2 className="text-lg font-semibold mb-2">Progress</h2>
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div
+              className="bg-green-500 h-4 rounded-full"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="mt-1 text-sm text-gray-600">{progress}% completed</p>
+        </div>
+
+        <Link to="/dashboard" className="text-blue-500 hover:underline block">
           ← Back to Dashboard
         </Link>
 
-        {/* Add New Task */}
+        {/* Add Task Form */}
         <form
           onSubmit={addTask}
-          className="mb-8 p-4 bg-white rounded-lg shadow-md space-y-4"
+          className="p-4 bg-white rounded-lg shadow space-y-4"
         >
           <h2 className="text-xl font-semibold">Add New Task</h2>
           <input
@@ -83,43 +259,131 @@ export default function ProjectDetailsPage() {
             placeholder="Task Name"
             value={newTask}
             onChange={(e) => setNewTask(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-400"
+            className="w-full px-4 py-2 border rounded-md"
             required
           />
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-400"
+            className="w-full px-4 py-2 border rounded-md"
           />
-          <button type="submit" className={buttonClasses}>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          >
             Add Task
           </button>
         </form>
 
-        {/* Error / Loading / Tasks */}
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        {loading ? (
-          <p>Loading tasks...</p>
-        ) : tasks.length === 0 ? (
-          <p>No tasks yet. Add one above!</p>
-        ) : (
-          <div className="space-y-4">
-            {tasks.map((task) => (
-              <div key={task._id} className={cardClasses}>
-                <h3 className="text-lg font-semibold">{task.name}</h3>
-                {task.dueDate && (
-                  <p className="text-gray-500 text-sm">
-                    Due: {new Date(task.dueDate).toLocaleDateString()}
-                  </p>
+        {/* Drag-and-Drop Board */}
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {statuses.map((status) => (
+              <Droppable droppableId={status} key={status}>
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="bg-white p-4 rounded-lg shadow min-h-[250px]"
+                  >
+                    <h3 className="text-lg font-bold mb-3">{status}</h3>
+                    {tasks
+                      .filter((task) => task.status === status)
+                      .map((task, index) => (
+                        <Draggable
+                          key={task._id}
+                          draggableId={task._id}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <div
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              ref={provided.innerRef}
+                              className="mb-3 p-3 bg-gray-100 rounded shadow space-y-2"
+                            >
+                              {editingTaskId === task._id ? (
+                                <>
+                                  <input
+                                    type="text"
+                                    value={editedName}
+                                    onChange={(e) =>
+                                      setEditedName(e.target.value)
+                                    }
+                                    className="w-full px-2 py-1 border rounded"
+                                  />
+                                  <input
+                                    type="date"
+                                    value={editedDueDate}
+                                    onChange={(e) =>
+                                      setEditedDueDate(e.target.value)
+                                    }
+                                    className="w-full px-2 py-1 border rounded"
+                                  />
+                                  <button
+                                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mr-2"
+                                    onClick={() => saveTaskEdit(task._id)}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+                                    onClick={() => setEditingTaskId(null)}
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <h4 className="font-semibold">{task.name}</h4>
+                                  {task.dueDate && (
+                                    <p className="text-gray-500 text-sm">
+                                      Due:{" "}
+                                      {new Date(
+                                        task.dueDate
+                                      ).toLocaleDateString()}
+                                    </p>
+                                  )}
+                                  <div className="flex gap-2 mt-2 flex-wrap">
+                                    <button
+                                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                      onClick={() => startEditingTask(task)}
+                                    >
+                                      Edit
+                                    </button>
+                                    <button
+                                      className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                      onClick={() =>
+                                        updateTask(task._id, {
+                                          completed: !task.completed,
+                                        })
+                                      }
+                                    >
+                                      {task.completed
+                                        ? "Undo Complete"
+                                        : "Mark Complete"}
+                                    </button>
+                                    <button
+                                      className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                      onClick={() => deleteTask(task._id)}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                    {provided.placeholder}
+                  </div>
                 )}
-                <p className={`text-sm ${task.completed ? "text-green-600" : "text-gray-700"}`}>
-                  {task.completed ? "Completed" : "Pending"}
-                </p>
-              </div>
+              </Droppable>
             ))}
           </div>
-        )}
+        </DragDropContext>
       </div>
     </div>
   );
