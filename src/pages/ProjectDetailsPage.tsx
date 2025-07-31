@@ -115,11 +115,13 @@ const handleDragEnd = async (result: DropResult) => {
 
   const { draggableId, destination } = result;
   const newStatus = destination.droppableId as Task["status"];
+  console.log(destination, draggableId, newStatus);
+  console.log('Current tasks state:', tasks);
 
   const updatedTasks = tasks.map((task) =>
     task._id === draggableId ? { ...task, status: newStatus } : task
   );
-
+  console.log('Updated tasks after drag:', updatedTasks);
   const tasksByStatus = statuses.reduce((acc, status) => {
     acc[status] = updatedTasks
       .filter((t) => t.status === status)
