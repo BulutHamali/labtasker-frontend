@@ -23,6 +23,9 @@ module.exports = {
           "gradient-subtle": "linear-gradient(to bottom, #f9fafb, #ffffff)",
           "gradient-hero": "linear-gradient(to right, #14b8a6, #3b82f6)",
         },
+        animation: {
+          "pulse-slow": "pulse 3s ease-in-out infinite",
+        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",

@@ -46,7 +46,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto">
           {/* Logo/Title */}
           <div className="animate-fade-in-up">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent animate-pulse-slow">
+            <h1 className="ext-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-emerald-400 to-blue-500 bg-clip-text text-transparent">
               LabTasker
             </h1>
             <div className="w-24 h-1 bg-gradient-hero mx-auto mb-8 rounded-full"></div>
