@@ -1,50 +1,184 @@
-# React + TypeScript + Vite
+# LabTasker 🧪🗂️  
+A research project and task management platform designed for academic labs, researchers, and students. Built with a modern tech stack to streamline lab workflows, track progress, and encourage collaboration.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 📊 **Project Organization**  
+  Structure your research projects with clear hierarchies and timelines.
 
-## Expanding the ESLint configuration
+- ✅ **Task Management**  
+  Break down complex research into manageable, trackable tasks.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- ⏰ **Deadline Tracking**  
+  Stay on top of deadlines with intuitive reminders.
 
-- Configure the top-level `parserOptions` property like this:
+- 👥 **Team Collaboration**  
+  Work seamlessly with supervisors, lab members, and collaborators.
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- 🔐 **Authentication**  
+  Secure registration/login using JWT tokens and React Context.
+
+- 🖥️ **Responsive UI**  
+  Clean and responsive design using Tailwind CSS and shadcn/ui components.
+
+---
+
+## 🧱 Tech Stack
+
+- **Frontend**: React + TypeScript + Vite  
+- **Styling**: Tailwind CSS, shadcn/ui  
+- **Routing**: React Router  
+- **State Management**: React Context API  
+- **Backend**: Node.js + Express  
+- **Database**: MongoDB (via Mongoose)  
+- **Auth**: JSON Web Tokens (JWT)
+
+---
+
+## 📁 Folder Structure
+
+```
+labtasker/
+├── backend/
+│   ├── controllers/
+│   ├── models/
+│   ├── routes/
+│   ├── middleware/
+│   └── server.js
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── context/
+│   │   ├── utils/
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   └── index.html
+└── README.md
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+---
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## ⚙️ Getting Started
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/labtasker.git
+cd labtasker
 ```
+
+### 2. Setup the Backend
+
+```bash
+cd backend
+npm install
+touch .env
+```
+
+Create a `.env` file with the following:
+
+```env
+PORT=3001
+MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/labtasker
+JWT_SECRET=your_jwt_secret
+```
+
+Then run the backend server:
+
+```bash
+npm run dev
+```
+
+### 3. Setup the Frontend
+
+```bash
+cd ../frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at [http://localhost:5173](http://localhost:5173)
+
+---
+
+## 🔑 Environment Variables
+
+Backend `.env`:
+
+```
+PORT=
+MONGO_URI=
+JWT_SECRET=
+```
+
+Frontend: None required at this stage.
+
+---
+
+## 🧪 Sample API Endpoints
+
+```
+POST   /api/users/register       Register a new user  
+POST   /api/users/login          Authenticate user & return token  
+GET    /api/projects             Fetch all projects (protected)  
+POST   /api/projects             Create a new project (protected)  
+GET    /api/projects/:id         Get project details (protected)  
+```
+
+---
+
+## 🧰 Dependencies
+
+- Frontend:
+  - `react`, `react-router-dom`, `@fontsource/inter`
+  - `tailwindcss`, `clsx`, `shadcn/ui`, `@hello-pangea/dnd`
+
+- Backend:
+  - `express`, `mongoose`, `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv`
+
+---
+
+## 🖼️ Screenshots
+
+| Landing Page | Dashboard |
+|--------------|-----------|
+| ![Landing](./screenshots/landing.png) | ![Dashboard](./screenshots/dashboard.png) |
+
+---
+
+## 💡 Roadmap Ideas
+
+- 🔔 Add email & in-app notifications  
+- 📱 Mobile responsiveness enhancements  
+- 📊 Analytics dashboard for project insights  
+- ⏳ Time tracking for tasks  
+- 🧪 Lab-specific features (e.g., reagent tracking, experiment protocols)
+
+---
+
+## 🤝 Contributing
+
+1. Fork the project  
+2. Create a feature branch: `git checkout -b feature/YourFeature`  
+3. Commit your changes: `git commit -m "Add feature"`  
+4. Push to the branch: `git push origin feature/YourFeature`  
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+MIT License © 2025 [Your Name]
+
+---
+
+## 💬 Contact
+
+Have feedback, suggestions, or want to collaborate?
+
+📧 Email: your@email.com  
+🔗 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
+🌐 Website: [yourdomain.com](https://yourdomain.com)
