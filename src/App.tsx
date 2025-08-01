@@ -10,6 +10,7 @@ import ProjectDetailsPage from "./pages/ProjectDetailsPage";
 import NotFound from "./pages/NotFound";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
+import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <Navbar />
       <Sonner />
       <Routes>
         {/* Public Routes */}
