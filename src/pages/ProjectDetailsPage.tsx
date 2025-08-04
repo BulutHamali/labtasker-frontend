@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import {
   DragDropContext,
   Droppable,
   Draggable,
   DropResult,
-} from "@hello-pangea/dnd";
-import useApi from "../hooks/useApi";
+} from '@hello-pangea/dnd';
+import useApi from '../hooks/useApi';
 
 interface Task {
   _id: string;
   name: string;
   dueDate?: string;
-  status: "To Do" | "In Progress" | "Done";
+  status: 'To Do' | 'In Progress' | 'Done';
   completed: boolean;
   order?: number;
 }
@@ -24,41 +24,38 @@ interface Project {
 }
 
 export default function ProjectDetailsPage() {
-  const { projectId } = useParams<{ projectId: string }>(); // FIXED PARAM
+  const { projectId } = useParams<{ projectId: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [newTask, setNewTask] = useState("");
-  const [dueDate, setDueDate] = useState("");
-
+  const [newTask, setNewTask] = useState('');
+  const [dueDate, setDueDate] = useState('');
   const [editingProject, setEditingProject] = useState(false);
-  const [editedProjectName, setEditedProjectName] = useState("");
-  const [editedProjectDesc, setEditedProjectDesc] = useState("");
-
+  const [editedProjectName, setEditedProjectName] = useState('');
+  const [editedProjectDesc, setEditedProjectDesc] = useState('');
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [editedName, setEditedName] = useState("");
-  const [editedDueDate, setEditedDueDate] = useState("");
-
+  const [editedName, setEditedName] = useState('');
+  const [editedDueDate, setEditedDueDate] = useState('');
   const api = useApi();
-  const statuses: Task["status"][] = ["To Do", "In Progress", "Done"];
+  const statuses: Task['status'][] = ['To Do', 'In Progress', 'Done'];
 
-const fetchProjectAndTasks = async () => {
-  try {
-    console.log('Fetching project from:', `/projects/${projectId}`);
-    console.log('Fetching tasks from:', `/tasks/${projectId}/tasks`);
-    const projRes = await api.get(`/projects/${projectId}`); // Relative path
-    const taskRes = await api.get(`/tasks/${projectId}/tasks`); // Relative path
-    setProject(projRes.data);
-    setTasks(taskRes.data);
-    setError(null);
-  } catch (err: any) {
-    console.error('Fetch Error:', err.response?.data || err.message);
-    setError(err.response?.data?.error || "Failed to load project or tasks");
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchProjectAndTasks = async () => {
+    try {
+      console.log('Fetching project from:', `/projects/${projectId}`);
+      console.log('Fetching tasks from:', `/tasks/${projectId}/tasks`);
+      const projRes = await api.get(`/projects/${projectId}`);
+      const taskRes = await api.get(`/tasks/${projectId}/tasks`);
+      setProject(projRes.data);
+      setTasks(taskRes.data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Fetch Error:', err.response?.data || err.message);
+      setError(err.response?.data?.error || 'Failed to load project or tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const saveProject = async () => {
     try {
@@ -69,7 +66,7 @@ const fetchProjectAndTasks = async () => {
       setProject(res.data);
       setEditingProject(false);
     } catch {
-      setError("Failed to update project");
+      setError('Failed to update project');
     }
   };
 
@@ -81,87 +78,85 @@ const fetchProjectAndTasks = async () => {
         dueDate: dueDate || undefined,
       });
       setTasks([...tasks, res.data]);
-      setNewTask("");
-      setDueDate("");
+      setNewTask('');
+      setDueDate('');
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to create task");
+      setError(err.response?.data?.error || 'Failed to create task');
     }
   };
 
-const updateTask = async (taskId: string, updates: Partial<Task>) => {
-  try {
-    console.log('Updating task:', `/tasks/${projectId}/tasks/${taskId}`, updates);
-    const response = await api.put(`/tasks/${projectId}/tasks/${taskId}`, updates);
-    fetchProjectAndTasks(); // Refresh tasks
-    return response.data;
-  } catch (err: any) {
-    console.error('Update Task Error:', err.response?.data || err.message);
-    throw err;
-  }
-};
+  const updateTask = async (taskId: string, updates: Partial<Task>) => {
+    try {
+      console.log('Updating task:', `/tasks/${projectId}/tasks/${taskId}`, updates);
+      const response = await api.put(`/tasks/${projectId}/tasks/${taskId}`, updates);
+      await fetchProjectAndTasks();
+      return response.data;
+    } catch (err: any) {
+      console.error('Update Task Error:', err.response?.data || err.message);
+      throw err;
+    }
+  };
 
   const deleteTask = async (taskId: string) => {
     try {
-      await api.delete(`/projects/${projectId}/tasks/${taskId}`); // Include projectId
+      console.log('Deleting task at:', `http://localhost:3001/api/tasks/${projectId}/tasks/${taskId}`);
+      await api.delete(`tasks/${projectId}/tasks/${taskId}`); // Fixed path
       setTasks(tasks.filter((t) => t._id !== taskId));
     } catch (err: any) {
-      console.error("Delete Task Error:", err.response?.data || err.message); // Log for debugging
-      setError(err.response?.data?.error || "Failed to delete task");
+      console.error('Delete Task Error:', err.response?.data || err.message);
+      setError(err.response?.data?.error || 'Failed to delete task');
     }
   };
 
-const handleDragEnd = async (result: DropResult) => {
-  if (!result.destination) return;
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return;
 
-  const { draggableId, destination } = result;
-  const newStatus = destination.droppableId as Task["status"];
-  console.log(destination, draggableId, newStatus);
-  console.log('Current tasks state:', tasks);
+    const { draggableId, destination } = result;
+    const newStatus = destination.droppableId as Task['status'];
+    console.log(destination, draggableId, newStatus);
+    console.log('Current tasks state:', tasks);
 
-  const updatedTasks = tasks.map((task) =>
-    task._id === draggableId ? { ...task, status: newStatus } : task
-  );
-  console.log('Updated tasks after drag:', updatedTasks);
-  const tasksByStatus = statuses.reduce((acc, status) => {
-    acc[status] = updatedTasks
-      .filter((t) => t.status === status)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-    return acc;
-  }, {} as Record<Task["status"], Task[]>);
+    const updatedTasks = tasks.map((task) =>
+      task._id === draggableId ? { ...task, status: newStatus } : task
+    );
+    console.log('Updated tasks after drag:', updatedTasks);
+    const tasksByStatus = statuses.reduce((acc, status) => {
+      acc[status] = updatedTasks
+        .filter((t) => t.status === status)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      return acc;
+    }, {} as Record<Task['status'], Task[]>);
 
-  const reorderedUpdates = Object.entries(tasksByStatus).flatMap(
-    ([status, arr]) =>
+    const reorderedUpdates = Object.entries(tasksByStatus).flatMap(([status, arr]) =>
       arr.map((task, index) => ({
         taskId: task._id,
-        status: status as Task["status"],
+        status: status as Task['status'],
         order: index,
       }))
-  );
+    );
 
-  console.log('Reordered updates:', reorderedUpdates);
-  setTasks(updatedTasks);
+    console.log('Reordered updates:', reorderedUpdates);
+    setTasks(updatedTasks);
 
-  try {
-    console.log('Sending PUT to:', `/tasks/${projectId}/tasks/reorder`, { updates: reorderedUpdates });
-    const response = await api.put(`/tasks/${projectId}/tasks/reorder`, {
-      updates: reorderedUpdates,
-    });
-    console.log('Reorder response:', response.data);
-  } catch (err: any) {
-    console.error('Reorder Error:', err.response?.data || err.message);
-    setError("Failed to save task positions");
-    fetchProjectAndTasks();
-  }
-};
-
-
+    try {
+      console.log('Sending PUT to:', `/tasks/${projectId}/tasks/reorder`, {
+        updates: reorderedUpdates,
+      });
+      const response = await api.put(`/tasks/${projectId}/tasks/reorder`, {
+        updates: reorderedUpdates,
+      });
+      console.log('Reorder response:', response.data);
+    } catch (err: any) {
+      console.error('Reorder Error:', err.response?.data || err.message);
+      setError('Failed to save task positions');
+      fetchProjectAndTasks();
+    }
+  };
 
   const startEditingTask = (task: Task) => {
     setEditingTaskId(task._id);
     setEditedName(task.name);
-    setEditedDueDate(
-      task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
-    );
+    setEditedDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
   };
 
   const saveTaskEdit = async (taskId: string) => {
@@ -173,10 +168,7 @@ const handleDragEnd = async (result: DropResult) => {
   };
 
   const completedTasks = tasks.filter((t) => t.completed).length;
-  const progress =
-    tasks.length > 0
-      ? Math.round((completedTasks / tasks.length) * 100)
-      : 0;
+  const progress = tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : 0;
 
   useEffect(() => {
     fetchProjectAndTasks();
@@ -224,8 +216,8 @@ const handleDragEnd = async (result: DropResult) => {
             <button
               onClick={() => {
                 setEditingProject(true);
-                setEditedProjectName(project?.name || "");
-                setEditedProjectDesc(project?.description || "");
+                setEditedProjectName(project?.name || '');
+                setEditedProjectDesc(project?.description || '');
               }}
               className="px-3 py-1 bg-blue-500 text-white rounded"
             >
@@ -310,17 +302,13 @@ const handleDragEnd = async (result: DropResult) => {
                                   <input
                                     type="text"
                                     value={editedName}
-                                    onChange={(e) =>
-                                      setEditedName(e.target.value)
-                                    }
+                                    onChange={(e) => setEditedName(e.target.value)}
                                     className="w-full px-2 py-1 border rounded"
                                   />
                                   <input
                                     type="date"
                                     value={editedDueDate}
-                                    onChange={(e) =>
-                                      setEditedDueDate(e.target.value)
-                                    }
+                                    onChange={(e) => setEditedDueDate(e.target.value)}
                                     className="w-full px-2 py-1 border rounded"
                                   />
                                   <button
@@ -341,10 +329,7 @@ const handleDragEnd = async (result: DropResult) => {
                                   <h4 className="font-semibold">{task.name}</h4>
                                   {task.dueDate && (
                                     <p className="text-gray-500 text-sm">
-                                      Due:{" "}
-                                      {new Date(
-                                        task.dueDate
-                                      ).toLocaleDateString()}
+                                      Due: {new Date(task.dueDate).toLocaleDateString()}
                                     </p>
                                   )}
                                   <div className="flex gap-2 mt-2 flex-wrap">
@@ -362,13 +347,11 @@ const handleDragEnd = async (result: DropResult) => {
                                         })
                                       }
                                     >
-                                      {task.completed
-                                        ? "Undo Complete"
-                                        : "Mark Complete"}
+                                      {task.completed ? 'Undo Complete' : 'Mark Complete'}
                                     </button>
                                     <button
                                       className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                                      onClick={() => deleteTask(task._id)}
+                                      onClick={() => deleteTask(task._id)} // Line ~375
                                     >
                                       Delete
                                     </button>
