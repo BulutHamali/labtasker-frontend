@@ -34,13 +34,13 @@ A research project and task management application built for academic labs and r
 | Drag and Drop | @hello-pangea/dnd |
 | Auth | JWT (managed via React Context) |
 | Notifications | Sonner |
-| Backend | Node.js, Express, MongoDB, Mongoose (separate repo) |
+| Backend | Node.js, Express, MongoDB, Mongoose — [labtasker-backend](https://github.com/BulutHamali/labtasker-backend) |
 
 ---
 
 ## Project Structure
 
-This repository contains the frontend only.
+This repository contains the frontend only. The backend is at [BulutHamali/labtasker-backend](https://github.com/BulutHamali/labtasker-backend).
 
 ```
 labtasker-frontend/
@@ -65,7 +65,7 @@ labtasker-frontend/
 ### Prerequisites
 
 - Node.js 18+
-- A running instance of the LabTasker backend (separate repository)
+- A running instance of the [LabTasker backend](https://github.com/BulutHamali/labtasker-backend)
 
 ### 1. Clone the repository
 
