@@ -159,4 +159,4 @@ PUT    /api/tasks/:projectId/tasks/reorder        Reorder tasks after drag-and-d
 
 ## License
 
-MIT License © 2025 [Your Name]
+MIT License © 2025 Bulut Hamali
