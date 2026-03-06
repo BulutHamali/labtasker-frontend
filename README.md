@@ -1,184 +1,162 @@
-# LabTasker 🧪🗂️  
-A research project and task management platform designed for academic labs, researchers, and students. Built with a modern tech stack to streamline lab workflows, track progress, and encourage collaboration.
+# LabTasker
+
+A research project and task management application built for academic labs and researchers. Designed to help individuals and small teams organize projects, track tasks, and monitor progress through a Kanban-style workflow.
+
+> **Status:** Active development. Core CRUD functionality and drag-and-drop task board are complete. The backend lives in a separate repository.
 
 ---
 
-## 🚀 Features
+## Live Demo
 
-- 📊 **Project Organization**  
-  Structure your research projects with clear hierarchies and timelines.
-
-- ✅ **Task Management**  
-  Break down complex research into manageable, trackable tasks.
-
-- ⏰ **Deadline Tracking**  
-  Stay on top of deadlines with intuitive reminders.
-
-- 👥 **Team Collaboration**  
-  Work seamlessly with supervisors, lab members, and collaborators.
-
-- 🔐 **Authentication**  
-  Secure registration/login using JWT tokens and React Context.
-
-- 🖥️ **Responsive UI**  
-  Clean and responsive design using Tailwind CSS and shadcn/ui components.
+[https://labtasker-frontend.onrender.com](https://labtasker-frontend.onrender.com)
 
 ---
 
-## 🧱 Tech Stack
+## Features
 
-- **Frontend**: React + TypeScript + Vite  
-- **Styling**: Tailwind CSS, shadcn/ui  
-- **Routing**: React Router  
-- **State Management**: React Context API  
-- **Backend**: Node.js + Express  
-- **Database**: MongoDB (via Mongoose)  
-- **Auth**: JSON Web Tokens (JWT)
+- **Project Management** — Create and organize research projects with names and descriptions.
+- **Task Board** — Drag-and-drop Kanban board with three columns: To Do, In Progress, and Done.
+- **Task CRUD** — Add, edit, delete, and mark tasks complete. Supports optional due dates.
+- **Progress Tracking** — Per-project progress bar based on completed task count.
+- **JWT Authentication** — Registration and login with token-based protected routes.
+- **Responsive Layout** — Functional across desktop and tablet screen sizes.
 
 ---
 
-## 📁 Folder Structure
+## Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Framework | React 18, TypeScript, Vite |
+| Styling | Tailwind CSS, shadcn/ui |
+| Routing | React Router v7 |
+| Data Fetching | Axios, TanStack Query |
+| Drag and Drop | @hello-pangea/dnd |
+| Auth | JWT (managed via React Context) |
+| Notifications | Sonner |
+| Backend | Node.js, Express, MongoDB, Mongoose (separate repo) |
+
+---
+
+## Project Structure
+
+This repository contains the frontend only.
 
 ```
-labtasker/
-├── backend/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   └── server.js
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── context/
-│   │   ├── utils/
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   └── index.html
-└── README.md
+labtasker-frontend/
+├── src/
+│   ├── components/       # Navbar and shared UI components
+│   ├── context/          # AuthContext for JWT token management
+│   ├── hooks/            # useApi — axios instance with auth header injection
+│   ├── pages/            # LandingPage, LoginPage, RegisterPage,
+│   │                     # DashboardPage, ProjectDetailsPage, NotFound
+│   ├── lib/              # Utility functions (cn, etc.)
+│   ├── App.tsx           # Route definitions and protected route logic
+│   └── main.tsx          # App entry point
+├── index.html
+├── vite.config.ts
+└── tailwind.config.js
 ```
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- A running instance of the LabTasker backend (separate repository)
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/labtasker.git
-cd labtasker
+git clone https://github.com/your-username/labtasker-frontend.git
+cd labtasker-frontend
 ```
 
-### 2. Setup the Backend
+### 2. Install dependencies
 
 ```bash
-cd backend
 npm install
-touch .env
 ```
 
-Create a `.env` file with the following:
+### 3. Configure environment variables
+
+Create a `.env` file in the project root:
 
 ```env
-PORT=3001
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/labtasker
-JWT_SECRET=your_jwt_secret
+VITE_API_BASE_URL=http://localhost:3001/api
 ```
 
-Then run the backend server:
+Replace the value with your backend URL if it is deployed remotely.
+
+### 4. Start the development server
 
 ```bash
 npm run dev
 ```
 
-### 3. Setup the Frontend
-
-```bash
-cd ../frontend
-npm install
-npm run dev
-```
-
-The frontend will be available at [http://localhost:5173](http://localhost:5173)
+The app will be available at [http://localhost:5173](http://localhost:5173).
 
 ---
 
-## 🔑 Environment Variables
+## API Overview
 
-Backend `.env`:
-
-```
-PORT=
-MONGO_URI=
-JWT_SECRET=
-```
-
-Frontend: None required at this stage.
-
----
-
-## 🧪 Sample API Endpoints
+The frontend communicates with a REST API. Expected endpoints:
 
 ```
-POST   /api/users/register       Register a new user  
-POST   /api/users/login          Authenticate user & return token  
-GET    /api/projects             Fetch all projects (protected)  
-POST   /api/projects             Create a new project (protected)  
-GET    /api/projects/:id         Get project details (protected)  
+POST   /api/users/register                        Register a new user
+POST   /api/users/login                           Authenticate and receive a JWT
+
+GET    /api/projects                              List all projects (protected)
+POST   /api/projects                              Create a project (protected)
+GET    /api/projects/:id                          Get a single project (protected)
+PUT    /api/projects/:id                          Update a project (protected)
+
+GET    /api/tasks/:projectId/tasks                List tasks for a project (protected)
+POST   /api/projects/:id/tasks                    Add a task to a project (protected)
+PUT    /api/tasks/:projectId/tasks/:id            Update a task (protected)
+DELETE /api/tasks/:projectId/tasks/:id            Delete a task (protected)
+PUT    /api/tasks/:projectId/tasks/reorder        Reorder tasks after drag-and-drop (protected)
 ```
 
 ---
 
-## 🧰 Dependencies
+## Known Limitations
 
-- Frontend:
-  - `react`, `react-router-dom`, `@fontsource/inter`
-  - `tailwindcss`, `clsx`, `shadcn/ui`, `@hello-pangea/dnd`
-
-- Backend:
-  - `express`, `mongoose`, `jsonwebtoken`, `bcryptjs`, `cors`, `dotenv`
+- **Token persistence:** The JWT is stored in React state and is lost on page refresh. Persistent sessions via localStorage or cookies are not yet implemented.
+- **No multi-user collaboration:** Projects and tasks are scoped to the authenticated user. Shared workspaces are not supported at this stage.
 
 ---
 
-## 🖼️ Screenshots
+## Roadmap
 
-| Landing Page | Dashboard |
-|--------------|-----------|
-| ![Landing](./screenshots/landing.png) | ![Dashboard](./screenshots/dashboard.png) |
-
----
-
-## 💡 Roadmap Ideas
-
-- 🔔 Add email & in-app notifications  
-- 📱 Mobile responsiveness enhancements  
-- 📊 Analytics dashboard for project insights  
-- ⏳ Time tracking for tasks  
-- 🧪 Lab-specific features (e.g., reagent tracking, experiment protocols)
+- [ ] Persist auth token across page refreshes
+- [ ] Email notifications for approaching deadlines
+- [ ] Analytics view with task completion trends
+- [ ] Time tracking per task
+- [ ] Lab-specific extensions (e.g., reagent inventory, experiment protocol tracking)
 
 ---
 
-## 🤝 Contributing
+## Dependencies
 
-1. Fork the project  
-2. Create a feature branch: `git checkout -b feature/YourFeature`  
-3. Commit your changes: `git commit -m "Add feature"`  
-4. Push to the branch: `git push origin feature/YourFeature`  
-5. Open a Pull Request
+**Runtime**
+
+- `react`, `react-dom`, `react-router-dom`
+- `axios`, `@tanstack/react-query`
+- `@hello-pangea/dnd`
+- `sonner`, `lucide-react`, `next-themes`
+- `@fontsource/inter`
+
+**Dev / Build**
+
+- `tailwindcss`, `clsx`, `tailwind-merge`, `class-variance-authority`
+- `shadcn-ui`, `@radix-ui/react-tooltip`
+- `vite`, `typescript`, `eslint`
 
 ---
 
-## 📄 License
+## License
 
 MIT License © 2025 [Your Name]
-
----
-
-## 💬 Contact
-
-Have feedback, suggestions, or want to collaborate?
-
-📧 Email: your@email.com  
-🔗 LinkedIn: [linkedin.com/in/yourprofile](https://linkedin.com/in/yourprofile)  
-🌐 Website: [yourdomain.com](https://yourdomain.com)
