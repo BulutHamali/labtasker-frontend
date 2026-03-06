@@ -70,7 +70,7 @@ labtasker-frontend/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/labtasker-frontend.git
+git clone https://github.com/BulutHamali/labtasker-frontend.git
 cd labtasker-frontend
 ```
 
